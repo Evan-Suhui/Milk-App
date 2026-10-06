@@ -660,40 +660,59 @@ html:not([data-theme="dark"])[data-color-theme="black-white"] .message-sent{
     }
 
     function showIncomingCall() {
-        if (!S.enabled || S.active) return;
-        const ov = document.getElementById('call-incoming-overlay');
-        if (!ov) return;
-        fillAv('call-inc-avatar'); fillNm('call-inc-name');
-        ov.classList.add('visible');
-        clearTimeout(S.incomingTimer);
+    if (!S.enabled || S.active) return;
+    const ov = document.getElementById('call-incoming-overlay');
+    if (!ov) return;
+    fillAv('call-inc-avatar'); fillNm('call-inc-name');
+    ov.classList.add('visible');
 
-        const autoRejectChance = 0.30;
-        if (Math.random() < autoRejectChance) {
-            const rejectDelay = 4000 + Math.random() * 6000;
-            S.incomingTimer = setTimeout(() => {
-                if (!ov.classList.contains('visible')) return;
-                ov.classList.remove('visible');
-                const myName = (typeof settings !== 'undefined' && settings.myName) || '我';
-                const partnerName = getName();
-                const rejectLabels = [
-                    `${partnerName} 的来电，${myName}未接听`,
-                    `${myName}拒绝了 ${partnerName} 的通话`,
-                    `错过了 ${partnerName} 的来电`,
-                    `${myName}暂时无法接听 ${partnerName} 的通话`,
-                ];
-                const label = rejectLabels[Math.floor(Math.random() * rejectLabels.length)];
-                sendCallEvent('fa-phone-slash', label, null);
-            }, rejectDelay);
-        } else {
-            S.incomingTimer = setTimeout(() => {
-                if (!ov.classList.contains('visible')) return;
-                ov.classList.remove('visible');
-                const myName = (typeof settings !== 'undefined' && settings.myName) || '我';
-                sendCallEvent('fa-phone-slash', `${myName}未接听 ${getName()} 的来电`, null);
-            }, 22000);
-        }
+    // ★ 新增：来电弹窗显示后播放铃声
+    try {
+        if (window.RingtoneManager) RingtoneManager.playRingtone();
+    } catch (e) {
+        console.warn('[Ringtone] 来电铃声播放失败:', e);
     }
 
+    clearTimeout(S.incomingTimer);
+
+    const autoRejectChance = 0.30;
+    if (Math.random() < autoRejectChance) {
+        const rejectDelay = 4000 + Math.random() * 6000;
+        S.incomingTimer = setTimeout(() => {
+            if (!ov.classList.contains('visible')) return;
+            ov.classList.remove('visible');
+
+            // ★ 新增：弹窗关闭时停止铃声
+            try {
+                if (window.RingtoneManager) RingtoneManager.stopRingtone();
+            } catch (e) {}
+
+            const myName = (typeof settings !== 'undefined' && settings.myName) || '我';
+            const partnerName = getName();
+            const rejectLabels = [
+                `${partnerName} 的来电，${myName}未接听`,
+                `${myName}拒绝了 ${partnerName} 的通话`,
+                `错过了 ${partnerName} 的来电`,
+                `${myName}暂时无法接听 ${partnerName} 的通话`,
+            ];
+            const label = rejectLabels[Math.floor(Math.random() * rejectLabels.length)];
+            sendCallEvent('fa-phone-slash', label, null);
+        }, rejectDelay);
+    } else {
+        S.incomingTimer = setTimeout(() => {
+            if (!ov.classList.contains('visible')) return;
+            ov.classList.remove('visible');
+
+            // ★ 新增：超时未接听时停止铃声
+            try {
+                if (window.RingtoneManager) RingtoneManager.stopRingtone();
+            } catch (e) {}
+
+            const myName = (typeof settings !== 'undefined' && settings.myName) || '我';
+            sendCallEvent('fa-phone-slash', `${myName}未接听 ${getName()} 的来电`, null);
+        }, 22000);
+    }
+}
     function scheduleRandomCall() {
         clearTimeout(S.randomCallTimer);
         if (!S.enabled) return;
