@@ -97,6 +97,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     updateLoader("连接成功，欢迎回来。", "100%");
     setTimeout(hideWelcomeScreen, 3500);
+    try {
+  await RingtoneManager.init();
+  if (typeof initRingtoneUI === "function") {
+    initRingtoneUI();
+  }
+  console.log("[App] 铃声模块已就绪");
+} catch (e) {
+  console.warn("[App] 铃声模块初始化失败:", e);
+}
 
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "hidden") {
