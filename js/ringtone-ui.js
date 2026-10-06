@@ -155,3 +155,11 @@
   // 导出初始化函数
   window.initRingtoneUI = initRingtoneUI;
 })();
+// 兜底：点击来电弹窗里任意按钮时停止铃声
+document.addEventListener('click', function(e) {
+    var btn = e.target.closest('#call-incoming-overlay button, #call-incoming-overlay [onclick]');
+    if (!btn) return;
+    try {
+        if (window.RingtoneManager) RingtoneManager.stopRingtone();
+    } catch (err) {}
+}, true);
