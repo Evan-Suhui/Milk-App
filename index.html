@@ -1068,70 +1068,9 @@
                     <button class="cs-tab" data-panel="cs-panel-sound" onclick="switchCsTab(this)">
                         <i class="fas fa-volume-up"></i> 音效
                     </button>
-                    <!-- 来电铃声提示设置 -->
-<div class="settings-group" id="ringtone-settings">
-  <div class="settings-group-title">来电铃声提示</div>
-  
-  <!-- 来电铃声开关 -->
-  <div class="settings-item">
-    <label class="settings-label">
-      <input type="checkbox" id="ringtone-enabled" checked>
-      来电时播放铃声提示
-    </label>
-  </div>
-
-  <!-- 铃声来源选择 -->
-  <div class="settings-item">
-    <label class="settings-label">铃声来源</label>
-    <div class="ringtone-source-tabs">
-      <button class="ringtone-tab active" data-source="url">URL 直链</button>
-      <button class="ringtone-tab" data-source="upload">本地上传</button>
-    </div>
-  </div>
-
-  <!-- URL 直链输入 -->
-  <div class="settings-item" id="ringtone-url-panel">
-    <label class="settings-label">铃声 URL</label>
-    <input type="url" id="ringtone-url-input" 
-           placeholder="https://example.com/ringtone.mp3" 
-           class="settings-input">
-    <button id="ringtone-url-test" class="settings-btn-sm">试听</button>
-  </div>
-
-  <!-- 本地上传面板 -->
-  <div class="settings-item" id="ringtone-upload-panel" style="display:none;">
-    <label class="settings-label">选择本地音频文件</label>
-    <input type="file" id="ringtone-file-input" 
-           accept=".mp3,.wav,.m4a,.aac,.ogg,audio/mpeg,audio/wav,audio/mp4,audio/x-m4a,audio/aac"
-           class="settings-file-input">
-    <p class="settings-hint" id="ringtone-file-hint">支持 MP3 / WAV / M4A / AAC / OGG 格式，文件大小建议不超过 5MB</p>
-    <button id="ringtone-upload-test" class="settings-btn-sm" style="display:none;">试听</button>
-  </div>
-
-  <!-- 当前铃声状态 -->
-  <div class="settings-item">
-    <span class="settings-hint" id="ringtone-status">当前使用：默认铃声</span>
-    <button id="ringtone-reset" class="settings-btn-sm">重置为默认</button>
-  </div>
-
-  <!-- 静默时间段设置 -->
-  <div class="settings-group-title" style="margin-top:16px;">静默时间段（免打扰）</div>
-  
-  <div class="settings-item">
-    <label class="settings-label">
-      <input type="checkbox" id="quiet-hours-enabled">
-      启用静默时间段
-    </label>
-  </div>
-
-  <div class="settings-item quiet-hours-config" style="display:none;">
-    <label class="settings-label">开始时间</label>
-    <input type="time" id="quiet-start-time" value="22:00" class="settings-input-sm">
-    <label class="settings-label" style="margin-left:12px;">结束时间</label>
-    <input type="time" id="quiet-end-time" value="07:00" class="settings-input-sm">
-    <p class="settings-hint">静默时间段内来电将不播放铃声（跨天时段自动处理）</p>
-  </div>
-</div>
+                    <button class="cs-tab" data-panel="cs-panel-ringtone" onclick="switchCsTab(this)">
+        <i class="fas fa-bell"></i> 铃声
+                    </button>
                     <button class="cs-tab" data-panel="cs-panel-display" onclick="switchCsTab(this)">
                         <i class="fas fa-eye"></i> 显示
                     </button>
@@ -1374,6 +1313,79 @@
                         </div>
                     </div>
                 </div>
+                <!-- 新增：来电铃声面板 -->
+<div class="cs-panel" id="cs-panel-ringtone">
+    <p class="cs-group-label">来电铃声提示</p>
+    <div class="cs-card">
+        <!-- 来电铃声开关 -->
+        <div class="setting-pill-row" id="ringtone-enabled-toggle-row">
+            <span class="setting-pill-icon"><i class="fas fa-bell"></i></span>
+            <span class="setting-pill-label">来电时播放铃声提示</span>
+            <label class="notif-toggle-switch" style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;">
+                <input type="checkbox" id="ringtone-enabled" checked style="opacity:0;width:0;height:0;">
+                <span class="notif-toggle-slider"></span>
+            </label>
+        </div>
+
+        <!-- 铃声来源选择 -->
+        <div style="padding: 10px 14px; border-top: 1px solid var(--border-color);">
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">铃声来源</div>
+            <div style="display:flex;gap:6px;">
+                <button class="modal-btn modal-btn-primary" id="ringtone-source-url-btn" style="flex:1;font-size:12px;padding:7px 0;">URL 直链</button>
+                <button class="modal-btn modal-btn-secondary" id="ringtone-source-upload-btn" style="flex:1;font-size:12px;padding:7px 0;">本地上传</button>
+            </div>
+        </div>
+
+        <!-- URL 直链输入 -->
+        <div id="ringtone-url-panel" style="padding: 10px 14px; border-top: 1px solid var(--border-color);">
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">铃声 URL</div>
+            <div style="display:flex;gap:6px;align-items:center;">
+                <input type="url" id="ringtone-url-input" placeholder="https://example.com/ringtone.mp3" style="flex:1;padding:7px 10px;border:1px solid var(--border-color);border-radius:8px;font-size:12px;background:var(--primary-bg);color:var(--text-primary);outline:none;">
+                <button id="ringtone-url-test" class="modal-btn modal-btn-secondary" style="padding:6px 10px;font-size:12px;white-space:nowrap;"><i class="fas fa-play"></i> 试听</button>
+            </div>
+        </div>
+
+        <!-- 本地上传面板 -->
+        <div id="ringtone-upload-panel" style="display:none;padding: 10px 14px; border-top: 1px solid var(--border-color);">
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">选择本地音频文件</div>
+            <input type="file" id="ringtone-file-input" accept=".mp3,.wav,.m4a,.aac,.ogg,audio/mpeg,audio/wav,audio/mp4,audio/x-m4a,audio/aac" style="width:100%;padding:7px 10px;border:1px dashed var(--border-color);border-radius:8px;font-size:12px;background:transparent;color:var(--text-secondary);outline:none;box-sizing:border-box;">
+            <p style="font-size:10px;color:var(--text-secondary);margin-top:4px;" id="ringtone-file-hint">支持 MP3 / WAV / M4A / AAC / OGG 格式，建议不超过 5MB</p>
+            <button id="ringtone-upload-test" class="modal-btn modal-btn-secondary" style="display:none;margin-top:6px;padding:6px 10px;font-size:12px;width:100%;"><i class="fas fa-play"></i> 试听</button>
+        </div>
+
+        <!-- 当前铃声状态 -->
+        <div style="padding: 10px 14px; border-top: 1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:12px;color:var(--text-secondary);" id="ringtone-status">当前使用：默认铃声</span>
+            <button id="ringtone-reset" class="modal-btn modal-btn-secondary" style="padding:5px 10px;font-size:11px;">重置为默认</button>
+        </div>
+    </div>
+
+    <!-- 静默时间段 -->
+    <p class="cs-group-label" style="margin-top:16px;">静默时间段（免打扰）</p>
+    <div class="cs-card">
+        <div class="setting-pill-row" id="quiet-hours-toggle-row">
+            <span class="setting-pill-icon"><i class="fas fa-moon"></i></span>
+            <span class="setting-pill-label">启用静默时间段</span>
+            <label class="notif-toggle-switch" style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;">
+                <input type="checkbox" id="quiet-hours-enabled" style="opacity:0;width:0;height:0;">
+                <span class="notif-toggle-slider"></span>
+            </label>
+        </div>
+        <div class="quiet-hours-config" style="display:none; padding: 10px 14px; border-top: 1px solid var(--border-color);">
+            <div style="display:flex;gap:10px;align-items:center;">
+                <div style="flex:1;">
+                    <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">开始时间</div>
+                    <input type="time" id="quiet-start-time" value="22:00" style="width:100%;padding:7px 10px;border:1px solid var(--border-color);border-radius:8px;font-size:12px;background:var(--primary-bg);color:var(--text-primary);outline:none;box-sizing:border-box;">
+                </div>
+                <div style="flex:1;">
+                    <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">结束时间</div>
+                    <input type="time" id="quiet-end-time" value="07:00" style="width:100%;padding:7px 10px;border:1px solid var(--border-color);border-radius:8px;font-size:12px;background:var(--primary-bg);color:var(--text-primary);outline:none;box-sizing:border-box;">
+                </div>
+            </div>
+            <p style="font-size:10px;color:var(--text-secondary);margin-top:6px;">静默时间段内来电将不播放铃声（跨天时段自动处理）</p>
+        </div>
+    </div>
+</div>
                 <div class="cs-panel" id="cs-panel-display">
                     <p class="cs-group-label">界面模式</p>
                     <div class="cs-card cs-immersive-wrap">
