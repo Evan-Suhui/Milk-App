@@ -10871,3 +10871,65 @@
             border-color: var(--accent-color) !important;
             outline: none;
         }
+/* 来电铃声设置面板 */
+.ringtone-source-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.ringtone-tab {
+  flex: 1;
+  padding: 6px 12px;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary, #666);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ringtone-tab.active {
+  background: var(--accent-color, #4a9eff);
+  color: #fff;
+  border-color: var(--accent-color, #4a9eff);
+}
+
+.settings-file-input {
+  width: 100%;
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+.settings-hint {
+  font-size: 12px;
+  color: var(--text-secondary, #888);
+  margin: 4px 0 0;
+  line-height: 1.4;
+}
+
+.settings-btn-sm {
+  margin-top: 6px;
+  padding: 4px 12px;
+  font-size: 12px;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.quiet-hours-config {
+  padding-left: 8px;
+  border-left: 2px solid var(--border-color, #eee);
+  margin-left: 4px;
+}
+
+.settings-input-sm {
+  padding: 4px 8px;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 4px;
+  font-size: 13px;
+  background: var(--input-bg, #fff);
+  color: var(--text-primary, #333);
+}
