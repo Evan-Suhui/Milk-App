@@ -1,119 +1,33 @@
 (function () {
     'use strict';
 
-    const KEY_ENABLED = 'callFeatureEnabled';
-    const KEY_POS = 'callWindowPos';
-    const KEY_SIZE = 'callWindowSize';
+    const KEY_ENABLED  = 'callFeatureEnabled';
+    const KEY_POS      = 'callWindowPos';
+    const KEY_SIZE     = 'callWindowSize';
     const KEY_PILL_POS = 'callPillPos';
-    const BG_LF_KEY = 'callBgImageData';
-
-    // ==================== 铃声设置存储键 ====================
-    const RINGTONE_KEY = 'ringtone_settings';
+    const BG_LF_KEY    = 'callBgImageData';
 
     const S = {
-        enabled: localStorage.getItem(KEY_ENABLED) !== 'false',
-        active: false,
-        startTime: null,
-        elapsed: 0,
-        timerRAF: null,
-        minimized: false,
-        immersive: false,
-        bgImage: null,
-        pos: JSON.parse(localStorage.getItem(KEY_POS) || 'null'),
-        pillPos: JSON.parse(localStorage.getItem(KEY_PILL_POS) || 'null'),
-        size: JSON.parse(localStorage.getItem(KEY_SIZE) || '{"w":280,"h":440}'),
-        dragOff: null,
-        pillDragOff: null,
-        pillDragged: false,
-        resizeInit: null,
-        incomingTimer: null,
+        enabled:         localStorage.getItem(KEY_ENABLED) !== 'false',
+        active:          false,
+        startTime:       null,
+        elapsed:         0,
+        timerRAF:        null,
+        minimized:       false,
+        immersive:       false,
+        bgImage:         null,
+        pos:             JSON.parse(localStorage.getItem(KEY_POS)  || 'null'),
+        pillPos:         JSON.parse(localStorage.getItem(KEY_PILL_POS) || 'null'),
+        size:            JSON.parse(localStorage.getItem(KEY_SIZE) || '{"w":280,"h":440}'),
+        dragOff:         null,
+        pillDragOff:     null,
+        pillDragged:     false,
+        resizeInit:      null,
+        incomingTimer:   null,
         connectingTimer: null,
         randomCallTimer: null,
-        isPartnerCall: false,
+        isPartnerCall:   false,
     };
-
-    // ==================== 铃声核心逻辑 ====================
-    let ringtoneAudio = null;
-    let audioUnlocked = false;
-
-    function getRingtoneSettings() {
-        try {
-            const saved = localStorage.getItem(RINGTONE_KEY);
-            return saved ? JSON.parse(saved) : {
-                ringtoneUrl: '',
-                ringtoneName: '未设置',
-                silentStart: '22:00',
-                silentEnd: '07:00',
-                enabled: true
-            };
-        } catch (e) {
-            return {
-                ringtoneUrl: '',
-                ringtoneName: '未设置',
-                silentStart: '22:00',
-                silentEnd: '07:00',
-                enabled: true
-            };
-        }
-    }
-
-    function saveRingtoneSettings(settings) {
-        try {
-            localStorage.setItem(RINGTONE_KEY, JSON.stringify(settings));
-        } catch (e) {}
-    }
-
-    function isSilentTime() {
-        const settings = getRingtoneSettings();
-        if (!settings.silentStart || !settings.silentEnd) return false;
-        const now = new Date();
-        const currentMinutes = now.getHours() * 60 + now.getMinutes();
-        const [startH, startM] = settings.silentStart.split(':').map(Number);
-        const [endH, endM] = settings.silentEnd.split(':').map(Number);
-        const startMinutes = startH * 60 + startM;
-        const endMinutes = endH * 60 + endM;
-        if (startMinutes > endMinutes) {
-            return currentMinutes >= startMinutes || currentMinutes <= endMinutes;
-        } else {
-            return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
-        }
-    }
-
-    function unlockAudio() {
-        if (audioUnlocked) return;
-        try {
-            const settings = getRingtoneSettings();
-            const unlockObj = new Audio(settings.ringtoneUrl || 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
-            unlockObj.volume = 0;
-            unlockObj.play().then(() => {
-                unlockObj.pause();
-                audioUnlocked = true;
-                console.log('[传讯铃声] 音频已解锁');
-            }).catch(() => {});
-        } catch (e) {}
-    }
-
-    function playRingtone() {
-        const settings = getRingtoneSettings();
-        if (!settings.enabled || isSilentTime() || !audioUnlocked || !settings.ringtoneUrl) return;
-        if (!ringtoneAudio) {
-            ringtoneAudio = new Audio(settings.ringtoneUrl);
-        }
-        ringtoneAudio.currentTime = 0;
-        ringtoneAudio.loop = true;
-        ringtoneAudio.play().catch(err => console.warn('[传讯铃声] 播放失败:', err));
-    }
-
-    function stopRingtone() {
-        if (ringtoneAudio) {
-            ringtoneAudio.pause();
-            ringtoneAudio.currentTime = 0;
-        }
-    }
-
-    // 全局解锁监听（首次点击时触发）
-    document.addEventListener('click', unlockAudio, { once: true });
-    document.addEventListener('touchstart', unlockAudio, { once: true });
 
     const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
@@ -564,91 +478,6 @@ html:not([data-theme="dark"])[data-color-theme="black-white"] .message-sent{
         document.body.appendChild(root);
     }
 
-    // ==================== 铃声设置界面（注入到原设置面板） ====================
-    function injectRingtoneSettings() {
-        const target = document.getElementById('ti-settings-body');
-        if (!target || document.getElementById('ringtone-settings-block')) return;
-
-        const settings = getRingtoneSettings();
-
-        const block = document.createElement('div');
-        block.id = 'ringtone-settings-block';
-        block.style.cssText = 'margin-top:18px;padding-top:14px;border-top:1px solid var(--border-color);';
-
-        block.innerHTML = `
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-                <div style="width:26px;height:26px;border-radius:8px;background:rgba(var(--accent-color-rgb),0.15);display:flex;align-items:center;justify-content:center;">
-                    <i class="fas fa-bell" style="font-size:12px;color:var(--accent-color);"></i>
-                </div>
-                <div style="font-size:13px;font-weight:600;color:var(--text-primary);">来电铃声</div>
-            </div>
-
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                <span style="font-size:12px;color:var(--text-secondary);">启用铃声提示</span>
-                <div id="ringtone-toggle" style="position:relative;width:44px;height:24px;border-radius:12px;background:${settings.enabled !== false ? 'var(--accent-color)' : '#ddd'};cursor:pointer;transition:background .2s;">
-                    <div style="position:absolute;top:2px;left:${settings.enabled !== false ? '22px' : '2px'};width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>
-                </div>
-            </div>
-
-            <div style="margin-bottom:10px;">
-                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">铃声 URL（支持 MP3 / WAV 直链）</div>
-                <input type="url" id="ringtone-url-input" placeholder="https://example.com/ringtone.mp3" value="${settings.ringtoneUrl || ''}" style="width:100%;padding:9px 10px;border:1px solid var(--border-color);border-radius:8px;font-size:12px;box-sizing:border-box;background:var(--primary-bg);color:var(--text-primary);">
-            </div>
-
-            <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
-                <div style="flex:1;">
-                    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">静默开始</div>
-                    <input type="time" id="ringtone-silent-start" value="${settings.silentStart || '22:00'}" style="width:100%;padding:8px;border:1px solid var(--border-color);border-radius:8px;font-size:12px;box-sizing:border-box;background:var(--primary-bg);color:var(--text-primary);">
-                </div>
-                <span style="color:var(--text-secondary);font-size:12px;margin-top:18px;">至</span>
-                <div style="flex:1;">
-                    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">静默结束</div>
-                    <input type="time" id="ringtone-silent-end" value="${settings.silentEnd || '07:00'}" style="width:100%;padding:8px;border:1px solid var(--border-color);border-radius:8px;font-size:12px;box-sizing:border-box;background:var(--primary-bg);color:var(--text-primary);">
-                </div>
-            </div>
-
-            <div style="display:flex;gap:8px;">
-                <button id="ringtone-test-btn" style="flex:1;padding:9px;border:none;border-radius:8px;background:rgba(var(--accent-color-rgb),0.12);color:var(--accent-color);font-size:12px;font-weight:500;cursor:pointer;">▶ 试听</button>
-                <button id="ringtone-save-btn" style="flex:1;padding:9px;border:none;border-radius:8px;background:var(--accent-color);color:#fff;font-size:12px;font-weight:500;cursor:pointer;">保存设置</button>
-            </div>
-        `;
-
-        target.appendChild(block);
-
-        // 事件绑定
-        let ringtoneEnabled = settings.enabled !== false;
-        document.getElementById('ringtone-toggle').addEventListener('click', function() {
-            ringtoneEnabled = !ringtoneEnabled;
-            this.style.background = ringtoneEnabled ? 'var(--accent-color)' : '#ddd';
-            this.querySelector('div').style.left = ringtoneEnabled ? '22px' : '2px';
-        });
-
-        document.getElementById('ringtone-test-btn').addEventListener('click', () => {
-            const url = document.getElementById('ringtone-url-input').value.trim();
-            if (!url) { if (typeof showNotification === 'function') showNotification('请先填写铃声 URL', 'error'); return; }
-            const testAudio = new Audio(url);
-            testAudio.currentTime = 0;
-            testAudio.volume = 1;
-            testAudio.play().catch(() => { if (typeof showNotification === 'function') showNotification('播放失败，请检查链接是否有效', 'error'); });
-        });
-
-        document.getElementById('ringtone-save-btn').addEventListener('click', () => {
-            const url = document.getElementById('ringtone-url-input').value.trim();
-            const start = document.getElementById('ringtone-silent-start').value || '22:00';
-            const end = document.getElementById('ringtone-silent-end').value || '07:00';
-            saveRingtoneSettings({
-                ringtoneUrl: url,
-                ringtoneName: url ? '自定义' : '未设置',
-                silentStart: start,
-                silentEnd: end,
-                enabled: ringtoneEnabled
-            });
-            // 重新创建音频对象
-            if (ringtoneAudio) { ringtoneAudio.pause(); ringtoneAudio = null; }
-            if (typeof showNotification === 'function') showNotification('铃声设置已保存', 'success');
-        });
-    }
-
     function injectToolbarBtn() {
         if (document.getElementById('call-toolbar-btn')) return;
         const anchor = document.getElementById('attachment-btn');
@@ -808,7 +637,6 @@ html:not([data-theme="dark"])[data-color-theme="black-white"] .message-sent{
         S.active = false; S.startTime = null;
         cancelAnimationFrame(S.timerRAF);
         clearTimeout(S.connectingTimer); clearTimeout(S.incomingTimer);
-        stopRingtone(); // 挂断时停止铃声
 
         ['call-window','call-mini-pill','call-incoming-overlay'].forEach(id => {
             const e = document.getElementById(id);
@@ -837,7 +665,6 @@ html:not([data-theme="dark"])[data-color-theme="black-white"] .message-sent{
         if (!ov) return;
         fillAv('call-inc-avatar'); fillNm('call-inc-name');
         ov.classList.add('visible');
-        playRingtone(); // 来电时播放铃声
         clearTimeout(S.incomingTimer);
 
         const autoRejectChance = 0.30;
@@ -846,7 +673,6 @@ html:not([data-theme="dark"])[data-color-theme="black-white"] .message-sent{
             S.incomingTimer = setTimeout(() => {
                 if (!ov.classList.contains('visible')) return;
                 ov.classList.remove('visible');
-                stopRingtone(); // 超时未接，停止铃声
                 const myName = (typeof settings !== 'undefined' && settings.myName) || '我';
                 const partnerName = getName();
                 const rejectLabels = [
@@ -862,7 +688,6 @@ html:not([data-theme="dark"])[data-color-theme="black-white"] .message-sent{
             S.incomingTimer = setTimeout(() => {
                 if (!ov.classList.contains('visible')) return;
                 ov.classList.remove('visible');
-                stopRingtone(); // 超时未接，停止铃声
                 const myName = (typeof settings !== 'undefined' && settings.myName) || '我';
                 sendCallEvent('fa-phone-slash', `${myName}未接听 ${getName()} 的来电`, null);
             }, 22000);
@@ -1005,15 +830,12 @@ html:not([data-theme="dark"])[data-color-theme="black-white"] .message-sent{
         document.getElementById('call-inc-reject')?.addEventListener('click', () => {
             document.getElementById('call-incoming-overlay')?.classList.remove('visible');
             clearTimeout(S.incomingTimer);
-            stopRingtone(); // 拒接时停止铃声
             const myName = (typeof settings !== 'undefined' && settings.myName) || '我';
             sendCallEvent('fa-phone-slash', `${myName}拒绝了 ${getName()} 的通话`, null);
         });
         document.getElementById('call-inc-accept')?.addEventListener('click', () => {
             document.getElementById('call-incoming-overlay')?.classList.remove('visible');
-            clearTimeout(S.incomingTimer);
-            stopRingtone(); // 接听时停止铃声
-            startCall(true);
+            clearTimeout(S.incomingTimer); startCall(true);
         });
 
         document.getElementById('call-hangup-btn')?.addEventListener('click', endCall);
@@ -1077,7 +899,6 @@ html:not([data-theme="dark"])[data-color-theme="black-white"] .message-sent{
         injectHTML();
         bindEvents();
         loadBg();
-        injectRingtoneSettings(); // 注入铃声设置到原设置面板
 
         const late = () => {
             injectToolbarBtn();
