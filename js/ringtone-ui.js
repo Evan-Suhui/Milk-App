@@ -4,9 +4,13 @@
   'use strict';
 let _ringtoneUIInitialized = false;
 
-  function initRingtoneUI() {
-    if (_ringtoneUIInitialized) return;   // ← 加这一行
-    _ringtoneUIInitialized = true;        // ← 和这一行
+  async function initRingtoneUI() {
+    if (_ringtoneUIInitialized) return;
+    _ringtoneUIInitialized = true;
+
+    // 关键：先让 RingtoneManager 从 localStorage / IndexedDB 恢复配置
+    try { await RingtoneManager.init(); } catch (e) { console.warn(e); }
+
     const enabledCheckbox = document.getElementById('ringtone-enabled');
     const urlPanel = document.getElementById('ringtone-url-panel');
     const uploadPanel = document.getElementById('ringtone-upload-panel');
@@ -77,14 +81,19 @@ let _ringtoneUIInitialized = false;
     // ---- URL 输入：只更新草稿，不写入 config ----
     // 修复 3：输入不再直接 updateConfig，避免"边打字边保存"
     // 只在用户切换 tab / 关闭面板时才落盘（这里简化：输入时更新内存，change 时落盘）
-    urlInput.addEventListener('input', () => {
-      // 不写 config，等失焦时再保存
-    });
-    urlInput.addEventListener('change', () => {
-      RingtoneManager.updateConfig({ url: urlInput.value.trim(), source: 'url' });
-      updateStatus(RingtoneManager.getConfig());
-    });
-
+    let _urlSaveTimer = null;
+urlInput.addEventListener('input', () => {
+  clearTimeout(_urlSaveTimer);
+  _urlSaveTimer = setTimeout(() => {
+    RingtoneManager.updateConfig({ url: urlInput.value.trim(), source: 'url' });
+    updateStatus(RingtoneManager.getConfig());
+  }, 400); // 停止输入 400ms 后落盘
+});
+urlInput.addEventListener('blur', () => {
+  clearTimeout(_urlSaveTimer);
+  RingtoneManager.updateConfig({ url: urlInput.value.trim(), source: 'url' });
+  updateStatus(RingtoneManager.getConfig());
+});
     // ---- URL 试听（修复 4：用 previewAudio，不改 config） ----
     urlTestBtn.addEventListener('click', async () => {
       const url = urlInput.value.trim();
