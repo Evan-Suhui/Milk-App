@@ -311,13 +311,33 @@ const RingtoneManager = (() => {
     }
     console.log('[Ringtone] 模块已初始化');
   }
+async function previewAudio(src) {
+    if (!src) return { success: false, error: '没有可试听的音频' };
+    unlockAudioOnIOS();
+    const preview = new Audio();
+    preview.preload = 'auto';
+    preview.src = src;
+    try {
+        await preview.play();
+        setTimeout(() => { try { preview.pause(); } catch (_) {} }, 8000);
+        return { success: true };
+    } catch (e) {
+        console.warn('[Ringtone] 试听失败:', e);
+        return { success: false, error: '无法播放该音频，请检查链接或格式' };
+    }
+}
 
+function getUploadedUrl() {
+    return currentBlobUrl;
+}
   return {
     init,
     getConfig,
     updateConfig,
     playRingtone,
     stopRingtone,
+    previewAudio,
+    getUploadedUrl,
     isQuietHours,
     handleFileUpload,
     unlockAudioOnIOS,
