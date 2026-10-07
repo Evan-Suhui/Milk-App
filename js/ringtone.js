@@ -343,6 +343,7 @@ const RingtoneManager = (() => {
 function getUploadedUrl() {
     return currentBlobUrl;
 }
+  loadConfig();
   return {
     init,
     getConfig,
