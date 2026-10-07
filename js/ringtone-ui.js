@@ -41,6 +41,11 @@ let _ringtoneUIInitialized = false;
     quietConfig.style.display = cfg.quietEnabled ? '' : 'none';
     updateStatus(cfg);
     setActiveTab(cfg.source === 'upload' ? 'upload' : 'url');
+    // 恢复上传状态的 UI 显示（刷新后不再看起来像"文件丢失"）
+if (cfg.source === 'upload' && cfg.fileName) {
+    fileHint.textContent = `已上传：${cfg.fileName}`;
+    uploadTestBtn.style.display = '';
+}
 
     // ---- iOS 音频解锁：在用户首次点铃声面板时调用 ----
     // 修复 1：把不存在的 #ringtone-settings 改为真实存在的 #cs-panel-ringtone
@@ -130,7 +135,7 @@ urlInput.addEventListener('blur', () => {
 
     // ---- 重置 ----
     resetBtn.addEventListener('click', async () => {
-      RingtoneManager.updateConfig({ source: 'default', url: '' });
+      RingtoneManager.updateConfig({ source: 'default', url: '' , fileName: ''});
       urlInput.value = '';
       fileInput.value = '';
       uploadTestBtn.style.display = 'none';
