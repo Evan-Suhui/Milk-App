@@ -13,6 +13,7 @@ const RingtoneManager = (() => {
     enabled: true,
     source: 'url',          // 'url' | 'upload' | 'default'
     url: '',
+    filename:'',
     quietEnabled: false,
     quietStart: '22:00',
     quietEnd: '07:00'
@@ -293,6 +294,7 @@ const RingtoneManager = (() => {
       currentBlobUrl = URL.createObjectURL(blob);
 
       config.source = 'upload';
+      config.fileName=file.name;
       saveConfig();
 
       return { success: true };
