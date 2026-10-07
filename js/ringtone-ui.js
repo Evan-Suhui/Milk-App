@@ -2,8 +2,11 @@
 
 (function () {
   'use strict';
+let _ringtoneUIInitialized = false;
 
   function initRingtoneUI() {
+    if (_ringtoneUIInitialized) return;   // ← 加这一行
+    _ringtoneUIInitialized = true;        // ← 和这一行
     const enabledCheckbox = document.getElementById('ringtone-enabled');
     const urlPanel = document.getElementById('ringtone-url-panel');
     const uploadPanel = document.getElementById('ringtone-upload-panel');
