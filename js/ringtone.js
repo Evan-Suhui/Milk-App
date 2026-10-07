@@ -21,7 +21,7 @@ const RingtoneManager = (() => {
   let audioElement = null;   // 用于播放铃声的 <audio> 元素
   let currentBlobUrl = null; // 本地上传文件的 Blob URL
   let audioCtx = null;       // Web Audio API 上下文（iOS 解锁用）
-
+  let previewAudioEl = null;
   // ==================== 配置读写 ====================
 
   function loadConfig() {
@@ -311,22 +311,35 @@ const RingtoneManager = (() => {
     }
     console.log('[Ringtone] 模块已初始化');
   }
-async function previewAudio(src) {
+// 模块级变量：记住当前正在试听的音频
+  async function previewAudio(src) {
     if (!src) return { success: false, error: '没有可试听的音频' };
     unlockAudioOnIOS();
+
+    // 关键：先停掉上一次试听，避免叠加播放
+    if (previewAudioEl) {
+        try { previewAudioEl.pause(); previewAudioEl.src = ''; } catch (_) {}
+        previewAudioEl = null;
+    }
+
     const preview = new Audio();
     preview.preload = 'auto';
     preview.src = src;
+    previewAudioEl = preview;
+
+    // 自然播完后清理引用（不再定时器强切）
+    preview.addEventListener('ended', () => {
+        if (previewAudioEl === preview) previewAudioEl = null;
+    });
+
     try {
         await preview.play();
-        setTimeout(() => { try { preview.pause(); } catch (_) {} }, 8000);
         return { success: true };
     } catch (e) {
         console.warn('[Ringtone] 试听失败:', e);
         return { success: false, error: '无法播放该音频，请检查链接或格式' };
     }
 }
-
 function getUploadedUrl() {
     return currentBlobUrl;
 }
